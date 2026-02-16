@@ -54,10 +54,8 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
             existingCartItem.setQuantity(
                     existingCartItem.getQuantity() + requestDto.getQuantity()
             );
-            cartItemRepository.save(existingCartItem);
         } else {
             CartItem cartItem = cartItemMapper.toEntity(requestDto, shoppingCart);
-            cartItemRepository.save(cartItem);
             shoppingCart.getCartItems().add(cartItem);
         }
 
@@ -91,7 +89,6 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
         verifyCartItemBelongsToUser(cartItem, shoppingCart, cartItemId);
 
         shoppingCart.getCartItems().remove(cartItem);
-        cartItemRepository.delete(cartItem);
     }
 
     @Override
