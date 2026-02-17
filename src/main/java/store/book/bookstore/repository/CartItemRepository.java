@@ -7,7 +7,6 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import store.book.bookstore.model.CartItem;
 
-@Repository
 public interface CartItemRepository extends JpaRepository<CartItem, Long> {
     @EntityGraph(attributePaths = {"book", "shoppingCart"})
     Optional<CartItem> findByShoppingCartIdAndBookId(
