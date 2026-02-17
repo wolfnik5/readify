@@ -1,0 +1,12 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-shopping-carts-for-existing-users
+      author: your-name
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO shopping_carts (user_id, is_deleted)
+              SELECT id, false FROM users
+              WHERE NOT EXISTS (
+                SELECT 1 FROM shopping_carts WHERE shopping_carts.user_id = users.id
+              );
