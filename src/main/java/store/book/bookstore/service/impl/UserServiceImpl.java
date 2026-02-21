@@ -1,4 +1,4 @@
-package store.book.bookstore.service;
+package store.book.bookstore.service.impl;
 
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +14,8 @@ import store.book.bookstore.model.RoleName;
 import store.book.bookstore.model.User;
 import store.book.bookstore.repository.RoleRepository;
 import store.book.bookstore.repository.UserRepository;
+import store.book.bookstore.service.ShoppingCartService;
+import store.book.bookstore.service.UserService;
 
 @Service
 @Transactional
