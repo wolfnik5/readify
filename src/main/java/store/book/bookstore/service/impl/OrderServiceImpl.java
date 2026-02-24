@@ -2,12 +2,10 @@ package store.book.bookstore.service.impl;
 
 import jakarta.transaction.Transactional;
 import java.math.BigDecimal;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import store.book.bookstore.dto.OrderDto;
@@ -60,15 +58,9 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public Page<OrderItemDto> getOrderItems(Long userId, Long orderId, Pageable pageable) {
-        Order order = getOrderByIdAndUserId(orderId, userId);
-
-        List<OrderItemDto> items = order.getOrderItems().stream()
-                .map(orderMapper::orderItemToDto)
-                .toList();
-
-        int start = (int) pageable.getOffset();
-        int end = Math.min(start + pageable.getPageSize(), items.size());
-        return new PageImpl<>(items.subList(start, end), pageable, items.size());
+        getOrderByIdAndUserId(orderId, userId);
+        return orderItemRepository.findAllByOrderIdAndOrderUserId(orderId, userId, pageable)
+                .map(orderMapper::orderItemToDto);
     }
 
     @Override

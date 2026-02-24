@@ -9,5 +9,5 @@ import store.book.bookstore.model.OrderItem;
 public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
     Optional<OrderItem> findByIdAndOrderId(Long id, Long orderId);
 
-    Page<OrderItem> findByOrderId(Long orderId, Pageable pageable);
+    Page<OrderItem> findAllByOrderIdAndOrderUserId(Long orderId, Long userId, Pageable pageable);
 }
