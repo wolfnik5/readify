@@ -1,4 +1,4 @@
-package store.book.bookstore.service;
+package store.book.bookstore.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -11,6 +11,7 @@ import store.book.bookstore.exception.EntityNotFoundException;
 import store.book.bookstore.mapper.CategoryMapper;
 import store.book.bookstore.model.Category;
 import store.book.bookstore.repository.CategoryRepository;
+import store.book.bookstore.service.CategoryService;
 
 @Service
 @RequiredArgsConstructor

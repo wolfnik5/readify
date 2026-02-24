@@ -1,4 +1,4 @@
-package store.book.bookstore.service;
+package store.book.bookstore.service.impl;
 
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -19,6 +19,7 @@ import store.book.bookstore.model.Category;
 import store.book.bookstore.repository.BookRepository;
 import store.book.bookstore.repository.BookSpecificationBuilder;
 import store.book.bookstore.repository.CategoryRepository;
+import store.book.bookstore.service.BookService;
 
 @Service
 @RequiredArgsConstructor
