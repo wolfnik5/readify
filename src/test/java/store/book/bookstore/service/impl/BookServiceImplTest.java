@@ -6,10 +6,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,6 +30,7 @@ import store.book.bookstore.model.Category;
 import store.book.bookstore.repository.BookRepository;
 import store.book.bookstore.repository.BookSpecificationBuilder;
 import store.book.bookstore.repository.CategoryRepository;
+import store.book.bookstore.util.TestDataHelper;
 
 @ExtendWith(MockitoExtension.class)
 class BookServiceImplTest {
@@ -48,52 +47,15 @@ class BookServiceImplTest {
     @InjectMocks
     private BookServiceImpl bookService;
 
-    private Category buildCategory() {
-        Category category = new Category();
-        category.setId(1L);
-        category.setName("Fantasy novel");
-        return category;
-    }
 
-    private Book buildBook() {
-        Book book = new Book();
-        book.setId(1L);
-        book.setTitle("Warriors: Into the Wild");
-        book.setAuthor("Erin Hunter");
-        book.setIsbn("9780329373528");
-        book.setPrice(BigDecimal.valueOf(29.99));
-        book.setCategories(Set.of(buildCategory()));
-        return book;
-    }
-
-    private BookDto buildBookDto() {
-        BookDto dto = new BookDto();
-        dto.setId(1L);
-        dto.setTitle("Warriors: Into the Wild");
-        dto.setAuthor("Erin Hunter");
-        dto.setIsbn("9780329373528");
-        dto.setPrice(BigDecimal.valueOf(29.99));
-        dto.setCategoryIds(Set.of(1L));
-        return dto;
-    }
-
-    private CreateBookRequestDto buildCreateRequest() {
-        CreateBookRequestDto req = new CreateBookRequestDto();
-        req.setTitle("Warriors: Into the Wild");
-        req.setAuthor("Erin Hunter");
-        req.setIsbn("9780329373528");
-        req.setPrice(BigDecimal.valueOf(29.99));
-        req.setCategoryIds(Set.of(1L));
-        return req;
-    }
 
     @Test
     @DisplayName("save: valid request → returns BookDto")
     void save_validRequest_returnsBookDto() {
-        CreateBookRequestDto request = buildCreateRequest();
-        Book book = buildBook();
-        BookDto expected = buildBookDto();
-        Category category = buildCategory();
+        Category category = TestDataHelper.buildCategory(1L);
+        Book book = TestDataHelper.buildBook(1L, category);
+        BookDto expected = TestDataHelper.buildBookDto(1L, 1L);
+        CreateBookRequestDto request = TestDataHelper.buildCreateBookRequest(1L);
 
         when(bookMapper.toModel(request)).thenReturn(book);
         when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
@@ -109,8 +71,8 @@ class BookServiceImplTest {
     @Test
     @DisplayName("save: category not found → throws EntityNotFoundException")
     void save_categoryNotFound_throwsException() {
-        CreateBookRequestDto request = buildCreateRequest();
-        Book book = buildBook();
+        Book book = TestDataHelper.buildBook(1L, TestDataHelper.buildCategory(1L));
+        CreateBookRequestDto request = TestDataHelper.buildCreateBookRequest(1L);
 
         when(bookMapper.toModel(request)).thenReturn(book);
         when(categoryRepository.findById(1L)).thenReturn(Optional.empty());
@@ -124,8 +86,8 @@ class BookServiceImplTest {
     @DisplayName("findAll: returns paginated list of BookDto")
     void findAll_returnsPaginatedBookDtos() {
         Pageable pageable = PageRequest.of(0, 10);
-        Book book = buildBook();
-        BookDto dto = buildBookDto();
+        Book book = TestDataHelper.buildBook(1L, TestDataHelper.buildCategory(1L));
+        BookDto dto = TestDataHelper.buildBookDto(1L, 1L);
         Page<Book> bookPage = new PageImpl<>(List.of(book));
 
         when(bookRepository.findAll(pageable)).thenReturn(bookPage);
@@ -140,8 +102,8 @@ class BookServiceImplTest {
     @Test
     @DisplayName("findById: existing id → returns BookDto")
     void findById_existingId_returnsBookDto() {
-        Book book = buildBook();
-        BookDto expected = buildBookDto();
+        Book book = TestDataHelper.buildBook(1L, TestDataHelper.buildCategory(1L));
+        BookDto expected = TestDataHelper.buildBookDto(1L, 1L);
 
         when(bookRepository.findById(1L)).thenReturn(Optional.of(book));
         when(bookMapper.toDto(book)).thenReturn(expected);
@@ -186,12 +148,12 @@ class BookServiceImplTest {
     @Test
     @DisplayName("update: existing id → returns updated BookDto")
     void update_existingId_returnsUpdatedBookDto() {
-        CreateBookRequestDto request = buildCreateRequest();
-        request.setTitle("Warriors: Into the Wild Updated");
-        Book book = buildBook();
-        BookDto expected = buildBookDto();
+        Category category = TestDataHelper.buildCategory(1L);
+        Book book = TestDataHelper.buildBook(1L, category);
+        BookDto expected = TestDataHelper.buildBookDto(1L, 1L);
         expected.setTitle("Warriors: Into the Wild Updated");
-        Category category = buildCategory();
+        CreateBookRequestDto request = TestDataHelper.buildCreateBookRequest(1L);
+        request.setTitle("Warriors: Into the Wild Updated");
 
         when(bookRepository.findById(1L)).thenReturn(Optional.of(book));
         when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
@@ -211,10 +173,12 @@ class BookServiceImplTest {
     void search_validParams_returnsFilteredPage() {
         Pageable pageable = PageRequest.of(0, 10);
         BookSearchParametersDto params = new BookSearchParametersDto(
-                "Warriors", null, null, null, null);
-        Book book = buildBook();
-        BookDto dto = buildBookDto();
-        Specification<Book> spec = (root, query, cb) -> cb.conjunction();
+                TestDataHelper.BOOK_TITLE, null, null, null, null);
+        Book book = TestDataHelper.buildBook(1L, TestDataHelper.buildCategory(1L));
+        BookDto dto = TestDataHelper.buildBookDto(1L, 1L);
+        Specification<Book> spec = (root,
+                                    query,
+                                    cb) -> cb.conjunction();
         Page<Book> bookPage = new PageImpl<>(List.of(book));
 
         when(bookSpecificationBuilder.build(params)).thenReturn(spec);
@@ -230,15 +194,15 @@ class BookServiceImplTest {
     @DisplayName("findAllByCategoryId: returns books for given category")
     void findAllByCategoryId_returnsBooks() {
         Pageable pageable = PageRequest.of(0, 10);
-        Book book = buildBook();
-        BookDtoWithoutCategoryIds dto = new BookDtoWithoutCategoryIds();
-        dto.setId(1L);
+        Book book = TestDataHelper.buildBook(1L, TestDataHelper.buildCategory(1L));
+        BookDtoWithoutCategoryIds dto = TestDataHelper.buildBookDtoWithoutCategories(1L);
         Page<Book> bookPage = new PageImpl<>(List.of(book));
 
         when(bookRepository.findAllByCategoriesId(1L, pageable)).thenReturn(bookPage);
         when(bookMapper.toDtoWithoutCategories(book)).thenReturn(dto);
 
-        Page<BookDtoWithoutCategoryIds> result = bookService.findAllByCategoryId(1L, pageable);
+        Page<BookDtoWithoutCategoryIds> result = bookService
+                .findAllByCategoryId(1L, pageable);
 
         assertThat(result.getContent()).hasSize(1);
     }

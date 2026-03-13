@@ -11,6 +11,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import store.book.bookstore.model.Category;
+import store.book.bookstore.util.TestDataHelper;
 
 @DataJpaTest
 class CategoryRepositoryTest {
@@ -24,10 +25,7 @@ class CategoryRepositoryTest {
     void setUp() {
         categoryRepository.deleteAll();
 
-        Category category = new Category();
-        category.setName("Programming");
-        category.setDescription("Books about software development");
-        savedCategory = categoryRepository.save(category);
+        savedCategory = categoryRepository.save(TestDataHelper.buildCategory());
     }
 
     @Test
@@ -36,7 +34,7 @@ class CategoryRepositoryTest {
         Optional<Category> result = categoryRepository.findById(savedCategory.getId());
 
         assertThat(result).isPresent();
-        assertThat(result.get().getName()).isEqualTo("Programming");
+        assertThat(result.get().getName()).isEqualTo(TestDataHelper.CATEGORY_NAME);
     }
 
     @Test
@@ -50,12 +48,10 @@ class CategoryRepositoryTest {
     @Test
     @DisplayName("findAll with pageable: returns paginated categories")
     void findAll_returnsPaginatedCategories() {
-        Category second = new Category();
-        second.setName("Science");
-        second.setDescription("Science books");
-        categoryRepository.save(second);
+        categoryRepository.save(TestDataHelper.buildCategory2());
 
-        Page<Category> result = categoryRepository.findAll(PageRequest.of(0, 10));
+        Page<Category> result = categoryRepository
+                .findAll(PageRequest.of(0, 10));
 
         assertThat(result.getContent()).hasSize(2);
     }
@@ -63,11 +59,7 @@ class CategoryRepositoryTest {
     @Test
     @DisplayName("save: persists category with id")
     void save_persistsCategory() {
-        Category category = new Category();
-        category.setName("Fiction");
-        category.setDescription("Fiction books");
-
-        Category saved = categoryRepository.save(category);
+        Category saved = categoryRepository.save(TestDataHelper.buildCategory3());
 
         assertThat(saved.getId()).isNotNull();
         assertThat(categoryRepository.findById(saved.getId())).isPresent();

@@ -24,6 +24,7 @@ import store.book.bookstore.exception.EntityNotFoundException;
 import store.book.bookstore.mapper.CategoryMapper;
 import store.book.bookstore.model.Category;
 import store.book.bookstore.repository.CategoryRepository;
+import store.book.bookstore.util.TestDataHelper;
 
 @ExtendWith(MockitoExtension.class)
 class CategoryServiceImplTest {
@@ -36,30 +37,12 @@ class CategoryServiceImplTest {
     @InjectMocks
     private CategoryServiceImpl categoryService;
 
-    private Category buildCategory() {
-        Category category = new Category();
-        category.setId(1L);
-        category.setName("Fantasy novel");
-        category.setDescription("Fiction featuring magical or supernatural elements");
-        return category;
-    }
-
-    private CategoryDto buildCategoryDto() {
-        return new CategoryDto(1L, "Fantasy novel",
-                "Fiction featuring magical or supernatural elements");
-    }
-
-    private CategoryRequestDto buildRequest() {
-        return new CategoryRequestDto("Fantasy novel",
-                "Fiction featuring magical or supernatural elements");
-    }
-
     @Test
     @DisplayName("findAll: returns paginated CategoryDtos")
     void findAll_returnsPaginatedDtos() {
         Pageable pageable = PageRequest.of(0, 10);
-        Category category = buildCategory();
-        CategoryDto dto = buildCategoryDto();
+        Category category = TestDataHelper.buildCategory(1L);
+        CategoryDto dto = TestDataHelper.buildCategoryDto(1L);
         Page<Category> page = new PageImpl<>(List.of(category));
 
         when(categoryRepository.findAll(pageable)).thenReturn(page);
@@ -69,7 +52,7 @@ class CategoryServiceImplTest {
 
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().getFirst().id()).isEqualTo(1L);
-        assertThat(result.getContent().getFirst().name()).isEqualTo("Fantasy novel");
+        assertThat(result.getContent().getFirst().name()).isEqualTo(TestDataHelper.CATEGORY_NAME);
     }
 
     @Test
@@ -86,8 +69,8 @@ class CategoryServiceImplTest {
     @Test
     @DisplayName("getById: existing id → returns CategoryDto")
     void getById_existingId_returnsCategoryDto() {
-        Category category = buildCategory();
-        CategoryDto expected = buildCategoryDto();
+        Category category = TestDataHelper.buildCategory(1L);
+        CategoryDto expected = TestDataHelper.buildCategoryDto(1L);
 
         when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
         when(categoryMapper.toDto(category)).thenReturn(expected);
@@ -110,9 +93,9 @@ class CategoryServiceImplTest {
     @Test
     @DisplayName("save: valid request → returns saved CategoryDto")
     void save_validRequest_returnsCategoryDto() {
-        CategoryRequestDto request = buildRequest();
-        Category category = buildCategory();
-        CategoryDto expected = buildCategoryDto();
+        CategoryRequestDto request = TestDataHelper.buildCategoryRequest();
+        Category category = TestDataHelper.buildCategory(1L);
+        CategoryDto expected = TestDataHelper.buildCategoryDto(1L);
 
         when(categoryMapper.toEntity(request)).thenReturn(category);
         when(categoryRepository.save(category)).thenReturn(category);
@@ -127,8 +110,9 @@ class CategoryServiceImplTest {
     @Test
     @DisplayName("update: existing id → returns updated CategoryDto")
     void update_existingId_returnsUpdatedDto() {
-        CategoryRequestDto request = new CategoryRequestDto("Updated", "Updated desc");
-        Category category = buildCategory();
+        CategoryRequestDto request = new CategoryRequestDto("Updated",
+                "Updated desc");
+        Category category = TestDataHelper.buildCategory(1L);
         CategoryDto expected = new CategoryDto(1L, "Updated", "Updated desc");
 
         when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
@@ -146,7 +130,9 @@ class CategoryServiceImplTest {
     void update_nonExistingId_throwsException() {
         when(categoryRepository.findById(99L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> categoryService.update(99L, buildRequest()))
+        CategoryRequestDto request = TestDataHelper.buildCategoryRequest();
+        assertThatThrownBy(() -> categoryService.update(99L,
+                request))
                 .isInstanceOf(EntityNotFoundException.class)
                 .hasMessageContaining("99");
     }

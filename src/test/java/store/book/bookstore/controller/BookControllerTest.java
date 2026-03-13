@@ -108,7 +108,8 @@ class BookControllerTest {
                         .param("title", TestDataHelper.BOOK_TITLE)
                         .header("Authorization", "Bearer " + userToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content[0].title").value(TestDataHelper.BOOK_TITLE));
+                .andExpect(jsonPath("$.content[0].title").
+                        value(TestDataHelper.BOOK_TITLE));
     }
 
     @Test
@@ -154,7 +155,8 @@ class BookControllerTest {
     @Test
     @DisplayName("PUT /books/{id}: admin → 200 with updated book")
     void updateBook_admin_returns200() throws Exception {
-        CreateBookRequestDto request = TestDataHelper.buildCreateBookRequest(savedCategory.getId());
+        CreateBookRequestDto request = TestDataHelper
+                .buildCreateBookRequest(savedCategory.getId());
         request.setTitle("Updated Title");
 
         mockMvc.perform(put("/books/{id}", savedBook.getId())
@@ -168,7 +170,8 @@ class BookControllerTest {
     @Test
     @DisplayName("PUT /books/{id}: non-existing id → 404")
     void updateBook_nonExisting_returns404() throws Exception {
-        CreateBookRequestDto request = TestDataHelper.buildCreateBookRequest(savedCategory.getId());
+        CreateBookRequestDto request = TestDataHelper
+                .buildCreateBookRequest(savedCategory.getId());
 
         mockMvc.perform(put("/books/99")
                         .header("Authorization", "Bearer " + adminToken)

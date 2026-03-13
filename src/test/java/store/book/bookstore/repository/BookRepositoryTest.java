@@ -2,9 +2,7 @@ package store.book.bookstore.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.math.BigDecimal;
 import java.util.Optional;
-import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -14,6 +12,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import store.book.bookstore.model.Book;
 import store.book.bookstore.model.Category;
+import store.book.bookstore.util.TestDataHelper;
 
 @DataJpaTest
 class BookRepositoryTest {
@@ -32,18 +31,8 @@ class BookRepositoryTest {
         bookRepository.deleteAll();
         categoryRepository.deleteAll();
 
-        Category category = new Category();
-        category.setName("Fantasy novel");
-        category.setDescription("Fiction featuring magical or supernatural elements");
-        savedCategory = categoryRepository.save(category);
-
-        Book book = new Book();
-        book.setTitle("Warriors: Into the Wild");
-        book.setAuthor("Erin Hunter");
-        book.setIsbn("9780329373528");
-        book.setPrice(BigDecimal.valueOf(29.99));
-        book.setCategories(Set.of(savedCategory));
-        savedBook = bookRepository.save(book);
+        savedCategory = categoryRepository.save(TestDataHelper.buildCategory());
+        savedBook = bookRepository.save(TestDataHelper.buildBook(savedCategory));
     }
 
     @Test
@@ -52,8 +41,8 @@ class BookRepositoryTest {
         Optional<Book> result = bookRepository.findById(savedBook.getId());
 
         assertThat(result).isPresent();
-        assertThat(result.get().getTitle()).isEqualTo("Warriors: Into the Wild");
-        assertThat(result.get().getAuthor()).isEqualTo("Erin Hunter");
+        assertThat(result.get().getTitle()).isEqualTo(TestDataHelper.BOOK_TITLE);
+        assertThat(result.get().getAuthor()).isEqualTo(TestDataHelper.BOOK_AUTHOR);
     }
 
     @Test
@@ -71,13 +60,14 @@ class BookRepositoryTest {
                 savedCategory.getId(), PageRequest.of(0, 10));
 
         assertThat(result.getContent()).hasSize(1);
-        assertThat(result.getContent().getFirst().getTitle()).isEqualTo("Warriors: Into the Wild");
+        assertThat(result.getContent().getFirst().getTitle()).isEqualTo(TestDataHelper.BOOK_TITLE);
     }
 
     @Test
     @DisplayName("findAllByCategoriesId: wrong category → returns empty page")
     void findAllByCategoriesId_wrongCategory_returnsEmpty() {
-        Page<Book> result = bookRepository.findAllByCategoriesId(99L, PageRequest.of(0, 20));
+        Page<Book> result = bookRepository
+                .findAllByCategoriesId(99L, PageRequest.of(0, 20));
 
         assertThat(result.getContent()).isEmpty();
     }
@@ -85,12 +75,7 @@ class BookRepositoryTest {
     @Test
     @DisplayName("save: persists book and assigns id")
     void save_persistsBook() {
-        Book book = new Book();
-        book.setTitle("Effective Java");
-        book.setAuthor("Joshua Bloch");
-        book.setIsbn("9780134685991");
-        book.setPrice(BigDecimal.valueOf(39.99));
-        book.setCategories(Set.of(savedCategory));
+        Book book = TestDataHelper.buildBook2(savedCategory);
 
         Book saved = bookRepository.save(book);
 

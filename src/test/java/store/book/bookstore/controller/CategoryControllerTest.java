@@ -78,7 +78,8 @@ class CategoryControllerTest {
         mockMvc.perform(get("/categories")
                         .header("Authorization", "Bearer " + userToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content[0].name").value(TestDataHelper.CATEGORY_NAME));
+                .andExpect(jsonPath("$.content[0].name")
+                        .value(TestDataHelper.CATEGORY_NAME));
     }
 
     @Test
@@ -118,7 +119,8 @@ class CategoryControllerTest {
     @Test
     @DisplayName("POST /categories: admin → 201 with created category")
     void create_admin_returns201() throws Exception {
-        CategoryRequestDto request = new CategoryRequestDto("Science Fiction", "Sci-fi books");
+        CategoryRequestDto request = new CategoryRequestDto("Science Fiction",
+                "Sci-fi books");
 
         mockMvc.perform(post("/categories")
                         .header("Authorization", "Bearer " + adminToken)
@@ -154,7 +156,8 @@ class CategoryControllerTest {
     @Test
     @DisplayName("PUT /categories/{id}: admin → 200 with updated category")
     void update_admin_returns200() throws Exception {
-        CategoryRequestDto request = new CategoryRequestDto("Updated Name", "Updated desc");
+        CategoryRequestDto request = new CategoryRequestDto("Updated Name",
+                "Updated desc");
 
         mockMvc.perform(put("/categories/{id}", savedCategory.getId())
                         .header("Authorization", "Bearer " + adminToken)
