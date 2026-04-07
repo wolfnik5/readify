@@ -1,5 +1,12 @@
 # 📚 BookStore REST API
 
+![Java](https://img.shields.io/badge/Java-21-orange?logo=openjdk)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5-brightgreen?logo=springboot)
+![MySQL](https://img.shields.io/badge/MySQL-8.0-blue?logo=mysql)
+![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker)
+![Build](https://github.com/WOLFnik5/book-store/actions/workflows/ci.yml/badge.svg)
+![License](https://img.shields.io/badge/license-MIT-green)
+
 > A production-ready online bookstore backend built with Spring Boot — featuring JWT authentication, role-based access control, shopping cart management, order processing, and full Swagger documentation.
 
 ---
@@ -14,37 +21,37 @@ Managing books shouldn't be complicated. This project was born out of the desire
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                        Client / Postman                     │
+│                        Client / Postman                      │
 └───────────────────────────┬─────────────────────────────────┘
                             │ HTTP Requests
                             ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                    Spring Security Layer                    │
-│          JWT Filter → Authentication → Authorization        │
+│                    Spring Security Layer                     │
+│          JWT Filter → Authentication → Authorization         │
 └───────────────────────────┬─────────────────────────────────┘
                             │
                             ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                      REST Controllers                       │
-│  Auth │ Books │ Categories │ Cart │ Orders                  │
+│                      REST Controllers                        │
+│  Auth │ Books │ Categories │ Cart │ Orders                   │
 └───────────────────────────┬─────────────────────────────────┘
                             │
                             ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                      Service Layer                          │
-│   Business Logic │ Validation │ Transaction Management      │
+│                      Service Layer                           │
+│   Business Logic │ Validation │ Transaction Management       │
 └───────────────────────────┬─────────────────────────────────┘
                             │
                             ▼
 ┌─────────────────────────────────────────────────────────────┐
 │               Repository Layer (Spring Data JPA)            │
-│        Specifications │ Custom Queries │ EntityGraphs       │
+│        Specifications │ Custom Queries │ EntityGraphs        │
 └───────────────────────────┬─────────────────────────────────┘
                             │
                             ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                     MySQL Database                          │
-│              Liquibase migrations │ Soft Deletes            │
+│                     MySQL Database                           │
+│              Liquibase migrations │ Soft Deletes             │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -104,7 +111,7 @@ src/
 │   └── validation/      # Custom validators (e.g. FieldMatch)
 ├── main/resources/
 │   ├── application.properties
-│   └── db/changelog/    # Liquibase changesets
+│   └── db/changelog/    # Liquibase changesets (14 migrations)
 └── test/                # Unit & integration tests
 ```
 
@@ -161,6 +168,47 @@ src/
 
 ---
 
+## 🗄️ Database Schema
+
+![Database Schema](docs/db-schema.png)
+
+> Schema generated with [dbdiagram.io](https://dbdiagram.io).
+
+---
+
+## 📦 Order Status Flow
+
+```
+                    ┌─────────┐
+                    │ PENDING │
+                    └────┬────┘
+                         │
+                         ▼
+                  ┌─────────────┐
+                  │ PROCESSING  │
+                  └──────┬──────┘
+                         │
+                         ▼
+                    ┌────────┐
+                    │ SHIPPED │
+                    └────┬────┘
+                         │
+                         ▼
+                  ┌───────────┐
+                  │ DELIVERED │
+                  └─────┬─────┘
+                        │
+              ┌─────────┴──────────┐
+              ▼                    ▼
+        ┌──────────┐        ┌───────────┐
+        │COMPLETED │        │ CANCELLED │
+        └──────────┘        └───────────┘
+```
+
+Status updates are performed by **Admin only** via `PATCH /api/orders/{id}`.
+
+---
+
 ## 🚀 Getting Started
 
 ### Prerequisites
@@ -177,7 +225,7 @@ git clone https://github.com/WOLFnik5/book-store.git
 cd book-store
 ```
 
-**2. Create your `.env` file** (copy from the sample)
+**2. Create your `.env` file**
 ```bash
 cp .env.sample .env
 ```
@@ -218,7 +266,7 @@ Swagger UI: **`http://localhost:8080/api/swagger-ui/index.html`**
 
 **1. Start a MySQL 8 instance** and create a database
 
-**2. Set environment variables** (or add to `application.properties`):
+**2. Set environment variables:**
 ```bash
 export SPRING_DATASOURCE_URL=jdbc:mysql://localhost:3306/bookstore?createDatabaseIfNotExist=true
 export SPRING_DATASOURCE_USERNAME=your_user
@@ -243,9 +291,9 @@ mvn spring-boot:run
 
 ---
 
-## 📋 How to Use the API
+## 📋 Quick Usage Guide
 
-### Step 1 — Authenticate
+### Step 1 — Login and get your token
 ```http
 POST /api/auth/login
 Content-Type: application/json
@@ -255,16 +303,13 @@ Content-Type: application/json
   "password": "admin1234"
 }
 ```
-
 Response:
 ```json
-{
-  "token": "eyJhbGciOiJIUzI1NiJ9..."
-}
+{ "token": "eyJhbGciOiJIUzI1NiJ9..." }
 ```
 
-### Step 2 — Use the token in subsequent requests
-```http
+### Step 2 — Add the token to all requests
+```
 Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
 ```
 
@@ -296,14 +341,17 @@ Content-Type: application/json
 }
 ```
 
-### Step 5 — Add to cart & place order (User)
+### Step 5 — Add to cart (User)
 ```http
 POST /api/cart
 Authorization: Bearer <user_token>
 Content-Type: application/json
 
 { "bookId": 1, "quantity": 2 }
+```
 
+### Step 6 — Place an order (User)
+```http
 POST /api/orders
 Authorization: Bearer <user_token>
 Content-Type: application/json
@@ -313,19 +361,33 @@ Content-Type: application/json
 
 ---
 
+## 🧪 Postman Collection
+
+Import `docs/BookStore.postman_collection.json` into Postman to get all endpoints pre-configured with example request bodies.
+
+**Setup:**
+1. Import the collection file into Postman
+2. Create a Postman environment with variable `baseUrl = http://localhost:8080/api`
+3. Run the **Login** request — copy the token from the response
+4. Set environment variable `token = <your JWT>`
+5. All other requests use `{{token}}` automatically via the `Authorization` header
+
+> The collection covers all 20 endpoints across all 5 controllers, with example payloads for every request.
+
+---
+
 ## 🧪 Running Tests
 
 ```bash
 # Run all tests
 mvn test
 
-# Run with coverage report
+# Run with full build and verification
 mvn verify
 ```
 
-Tests use an **H2 in-memory database** — no external services required.
+Tests use an **H2 in-memory database** — no external services required. The suite includes:
 
-The test suite includes:
 - **Unit tests** for all service implementations (Mockito)
 - **Repository tests** with `@DataJpaTest`
 - **Integration/controller tests** with `@SpringBootTest` + `MockMvc`
@@ -334,46 +396,28 @@ The test suite includes:
 
 ## 🔒 Security Design
 
-- Passwords are hashed with **BCrypt**
-- JWT tokens are signed with **HMAC-SHA** and validated on every request
-- Session is **stateless** — no server-side session storage
-- Access control uses **Spring Security method-level annotations** (`@PreAuthorize`)
-- CSRF is disabled (stateless JWT API)
+- Passwords hashed with **BCrypt**
+- JWT tokens signed with **HMAC-SHA**, validated on every request
+- **Stateless** sessions — no server-side session storage
+- Method-level access control via `@PreAuthorize`
+- CSRF disabled (stateless JWT API)
 - Custom `@FieldMatch` annotation validates password confirmation at registration
-
----
-
-## 🗄️ Database Schema
-
-The schema is managed entirely through **Liquibase** changesets:
-
-```
-users ──────────────────────── users_roles ── roles
-  │                                │
-  └─── shopping_carts ──── cart_items ──── books
-  │                                          │
-  └─── orders ──────── order_items ──── ─────┘
-                                             │
-                                         books_categories ── categories
-```
-
-All primary entities support **soft delete** via an `is_deleted` flag, enforced transparently through Hibernate `@SQLRestriction`.
 
 ---
 
 ## ⚠️ Challenges & Solutions
 
-**Challenge 1: Keeping shopping cart in sync during order placement**  
-When an order is placed, the cart must be atomically cleared. This was handled using `@Transactional` and cascading operations — the cart items are cleared through the JPA relationship rather than separate delete queries, ensuring consistency.
+**Challenge 1: Atomic cart clearing on order placement**  
+When an order is placed, the cart must be cleared in the same transaction. Solved using `@Transactional` with cascading JPA operations — cart items are removed through the relationship rather than separate delete queries.
 
 **Challenge 2: N+1 queries with lazy-loaded associations**  
-Fetching orders with their items naively triggers many queries. The solution was using `@EntityGraph` annotations on repository methods to eagerly fetch only what's needed, per query.
+Fetching orders with their items naively triggers many queries. Solved using `@EntityGraph` on repository methods to eagerly fetch only what's needed, per query.
 
-**Challenge 3: Specification-based search**  
-Building a flexible search without hard-coding all combinations required the Strategy pattern. Each filter criterion (`TitleSpecificationProvider`, `PriceSpecificationProvider`, etc.) is a separate component, assembled dynamically by `BookSpecificationBuilder`.
+**Challenge 3: Flexible search without combinatorial explosion**  
+Building a search with multiple optional filters required the Strategy pattern. Each criterion (`TitleSpecificationProvider`, `PriceSpecificationProvider`, etc.) is a separate component, assembled dynamically by `BookSpecificationBuilder`.
 
 **Challenge 4: Test isolation with shared database state**  
-Integration tests that modify data can interfere. The solution was explicit `@BeforeEach`/`@AfterEach` cleanup using `JdbcTemplate` for hard deletes, bypassing soft-delete filters.
+Integration tests that write data can interfere with each other. Solved with explicit `@BeforeEach`/`@AfterEach` cleanup via `JdbcTemplate` hard deletes, bypassing soft-delete filters.
 
 ---
 
@@ -385,16 +429,13 @@ This project is open-source and available under the [MIT License](LICENSE).
 
 ## 🤝 Contributing
 
-Pull requests are welcome! For major changes, please open an issue first to discuss what you'd like to change.
+Pull requests are welcome! For major changes, please open an issue first.
 
 1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
+2. Create your feature branch: `git checkout -b feature/amazing-feature`
+3. Commit your changes: `git commit -m 'Add amazing feature'`
+4. Push: `git push origin feature/amazing-feature`
 5. Open a Pull Request
 
 ---
 
-<div align="center">
-  Built with ❤️ using Spring Boot
-</div>
