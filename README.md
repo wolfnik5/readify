@@ -1,10 +1,10 @@
-# 📚 BookStore REST API
+# 📚 Readify REST API
 
 ![Java](https://img.shields.io/badge/Java-21-orange?logo=openjdk)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5-brightgreen?logo=springboot)
 ![MySQL](https://img.shields.io/badge/MySQL-8.0-blue?logo=mysql)
 ![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker)
-![Build](https://github.com/WOLFnik5/book-store/actions/workflows/ci.yml/badge.svg)
+![Build](https://github.com/WOLFnik5/readify/actions/workflows/ci.yml/badge.svg)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 > A production-ready online bookstore backend built with Spring Boot — featuring JWT authentication, role-based access control, shopping cart management, order processing, and full Swagger documentation.
@@ -98,7 +98,7 @@ Managing books shouldn't be complicated. This project was born out of the desire
 
 ```
 src/
-├── main/java/store/book/bookstore/
+├── main/java/store/book/readify/
 │   ├── config/          # Security configuration
 │   ├── controller/      # REST endpoints
 │   ├── dto/             # Request/Response data transfer objects
@@ -221,7 +221,7 @@ Status updates are performed by **Admin only** via `PATCH /api/orders/{id}`.
 
 **1. Clone the repository**
 ```bash
-git clone https://github.com/WOLFnik5/book-store.git
+git clone https://github.com/WOLFnik5/readify.git
 cd book-store
 ```
 
